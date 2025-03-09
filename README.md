@@ -3,12 +3,12 @@
 A utility for creating and validating file checksums to detect changes in directories.
 
 ## Features
-•	Create Checksum Files: Generate CRC32 checksums for all files in a directory
-•	Validate Checksums: Compare two checksum files to identify added, modified, or deleted files
-•	Multiple Interfaces:
-•	Command-line interface for scripting
-•	Interactive menu for manual operation
-•	DLL exports for integration with other software
+- Create Checksum Files: Generate CRC32 checksums for all files in a directory
+- Validate Checksums: Compare two checksum files to identify added, modified, or deleted files
+- Multiple Interfaces:
+	- Command-line interface for scripting
+  	- Interactive menu for manual operation
+  	- DLL exports for integration with other software
 
 ## Usage
 ### Command-line Interface
@@ -43,13 +43,13 @@ ChecksumHandler validate C:\Projects\MyApp\v1 C:\Projects\MyApp\v2
 ## Interactive Menu
 
 Run the program without arguments to enter interactive menu mode:
-1. Create a checksum file: Generate a new checksum.txt file
+1. **Create a checksum file**: Generate a new checksum.txt file
 	- Enter the Folder Path
-	- Optionally specify exlcude patterns (comma seperated)
-2. Validate checksums: Compare two checksum files and identify changes
-	- •	Enter the path to the original directory or checksum file
-	- •	Enter the path to the new directory or checksum file
-3. Exit: Close the program
+	- Optionally specify exclude patterns (comma-separated)
+2. **Validate checksums**: Compare two checksum files and identify changes
+	- Enter the path to the original directory or checksum file
+	- Enter the path to the new directory or checksum file
+3. **Exit**: Close the program
 
 ## DLL Integration
 The following functions are exported for use in other applications:
@@ -83,25 +83,25 @@ if (result > 0) {
 
 ## Change Detection
 The program identifies three types of file changes:
-•	ADDED: Files present in the new directory but not in the original
-•	DELETED: Files present in the original directory but not in the new one
-•	CHANGED: Files present in both directories but with different checksums
+- ADDED: Files present in the new directory but not in the original
+- DELETED: Files present in the original directory but not in the new one
+- CHANGED: Files present in both directories but with different checksums
 
-For large change sets, the output is organized by change type for better readability, including a change percentage calculation.
+For large change sets, the output is organized by change type for better readability and includes a change percentage calculation.
 
 ## Implementation Details
-•	Uses CRC32 algorithm for reliable file checksums
-•	Processes files recursively in directories
-•	Provides detailed error reporting and progress indicators
-•	Color-coded console output for better readability
-•	Cross-platform compatible console clearing
+- Uses CRC32 algorithm for reliable file checksums
+- Processes files recursively in directories
+- Provides detailed error reporting and progress indicators
+- Color-coded console output for better readability
+- Cross-platform compatible console clearing
 
 ## Return Codes
-•	0: Success (no changes for validation)
-•	1: Error or changes detected during validation
-•	200: Internal success code for checksum creation
+- 0: Success (no changes for validation)
+- 1: Error or changes detected during validation
+- 200: Internal success code for checksum creation
 
 ## Build Information
-•	Built with C++20
-•	Supports both standalone executable and DLL builds
-•	Uses standard C++ libraries for file system operations
+- Built with C++20
+- Supports both standalone executable and DLL builds
+- Uses standard C++ libraries for file system operations
