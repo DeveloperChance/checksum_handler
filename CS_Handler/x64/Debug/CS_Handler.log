@@ -1,0 +1,6 @@
+﻿  pch.cpp
+  checksum.cpp
+  dllmain.cpp
+  Generating Code...
+     Creating library D:\Meshcaid\checksum_handler\x64\Debug\CS_Handler.lib and object D:\Meshcaid\checksum_handler\x64\Debug\CS_Handler.exp
+  CS_Handler.vcxproj -> D:\Meshcaid\checksum_handler\x64\Debug\CS_Handler.dll

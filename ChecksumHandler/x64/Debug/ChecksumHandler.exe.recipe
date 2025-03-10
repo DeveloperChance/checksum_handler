@@ -2,6 +2,9 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
+      <FullPath>D:\Meshcaid\checksum_handler\x64\Debug\CS_Handler.dll</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
       <FullPath>D:\Meshcaid\checksum_handler\x64\Debug\ChecksumHandler.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
