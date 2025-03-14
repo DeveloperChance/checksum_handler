@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    "openssl",
+    "vcpkg-cmake",
+    "vcpkg-cmake-config",
+    "vcpkg-cmake-get-vars"
+  ]
+}

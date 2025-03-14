@@ -4,6 +4,10 @@
 #include <fstream>
 #include <map>
 #include <iomanip>
+#include <openssl/sha.h>
+#include <openssl/evp.h>  // Add this for OpenSSL 3.0+ EVP interface
+#include <openssl/err.h>  // Add this for error handling
+#include <openssl/opensslv.h> // Add this to check OpenSSL version
 
 extern int createChecksumFile(const std::string& path, const std::vector<std::string>& excludePatterns);
 extern bool validateChecksumFile(const std::string& currPath, const std::string& newPath);
@@ -18,38 +22,69 @@ int calculateFileChecksum(const std::filesystem::path& filePath) {
         return -1;
     }
 
-    // CRC32 algorithm implementation
     constexpr size_t bufferSize = 8192;  // 8KB Buffer
-    char buffer[bufferSize];
-    uint32_t crc = 0xFFFFFFFF;
+    unsigned char buffer[bufferSize];
+    unsigned char hash[SHA256_DIGEST_LENGTH];
 
-    // Generate CRC32 lookup table once
-    static uint32_t crcTable[256];
-    static bool tableInitialized = false;
-
-    if (!tableInitialized) {
-        for (uint32_t i = 0; i < 256; i++) {
-            uint32_t c = i;
-            for (int j = 0; j < 8; j++) {
-                c = (c & 1) ? (0xEDB88320 ^ (c >> 1)) : (c >> 1);
-            }
-            crcTable[i] = c;
-        }
-        tableInitialized = true;
+    // OpenSSL 3.0+ compatible implementation
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+    // Use the EVP interface which is preferred in OpenSSL 3.0+
+    EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
+    if (!mdctx) {
+        std::cout << "\n\033[1;31mError: Could not create message digest context\033[0m" << std::endl;
+        return -1;
     }
 
-    while (file.read(buffer, bufferSize)) {
-        for (size_t i = 0; i < static_cast<size_t>(file.gcount()); ++i) {
-            crc = crcTable[(crc ^ buffer[i]) & 0xFF] ^ (crc >> 8);
+    if (1 != EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL)) {
+        EVP_MD_CTX_free(mdctx);
+        std::cout << "\n\033[1;31mError: Could not initialize digest\033[0m" << std::endl;
+        return -1;
+    }
+
+    while (file.read(reinterpret_cast<char*>(buffer), bufferSize)) {
+        if (1 != EVP_DigestUpdate(mdctx, buffer, file.gcount())) {
+            EVP_MD_CTX_free(mdctx);
+            std::cout << "\n\033[1;31mError: Could not update digest\033[0m" << std::endl;
+            return -1;
         }
     }
 
     // Process remaining bytes
-    for (size_t i = 0; i < static_cast<size_t>(file.gcount()); ++i) {
-        crc = crcTable[(crc ^ buffer[i]) & 0xFF] ^ (crc >> 8);
+    if (file.gcount() > 0) {
+        if (1 != EVP_DigestUpdate(mdctx, buffer, file.gcount())) {
+            EVP_MD_CTX_free(mdctx);
+            std::cout << "\n\033[1;31mError: Could not update digest with remaining bytes\033[0m" << std::endl;
+            return -1;
+        }
     }
 
-    return ~crc; // Final XOR value
+    unsigned int len = SHA256_DIGEST_LENGTH;
+    if (1 != EVP_DigestFinal_ex(mdctx, hash, &len)) {
+        EVP_MD_CTX_free(mdctx);
+        std::cout << "\n\033[1;31mError: Could not finalize digest\033[0m" << std::endl;
+        return -1;
+    }
+
+    EVP_MD_CTX_free(mdctx);
+#else
+    // Legacy implementation for OpenSSL < 3.0
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+
+    while (file.read(reinterpret_cast<char*>(buffer), bufferSize)) {
+        SHA256_Update(&sha256, buffer, file.gcount());
+    }
+
+    // Process remaining bytes
+    if (file.gcount() > 0) {
+        SHA256_Update(&sha256, buffer, file.gcount());
+    }
+
+    SHA256_Final(hash, &sha256);
+#endif
+
+    int result = (hash[0] << 24) | (hash[1] << 16) | (hash[2] << 8) | hash[3];
+    return result;
 }
 
 // C-compatible exported function implementation
@@ -491,7 +526,9 @@ int GetChangedFiles(const char* currPath, const char* newPath, char*** filePaths
                 *count = 0;
                 return -2; // Memory allocation failure
             }
-            strcpy_s((*filePathsOut)[i], pathLen, info.filePath.c_str());
+
+            // Use memcpy instead of strcpy_s
+            memcpy((*filePathsOut)[i], info.filePath.c_str(), pathLen);
 
             // Allocate and copy change type
             size_t typeLen = info.changeType.length() + 1;
@@ -504,7 +541,9 @@ int GetChangedFiles(const char* currPath, const char* newPath, char*** filePaths
                 *count = 0;
                 return -2; // Memory allocation failure
             }
-            strcpy_s((*changeTypesOut)[i], typeLen, info.changeType.c_str());
+
+            // Use memcpy instead of strcpy_s
+            memcpy((*changeTypesOut)[i], info.changeType.c_str(), typeLen);
         }
 
         return 1; // Success
