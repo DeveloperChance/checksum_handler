@@ -34,3 +34,6 @@
 # Builds
 build/
 intermediate/
+
+# VS
+.vs
