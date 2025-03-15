@@ -122,6 +122,7 @@ int createChecksumFile(const std::string& path, const std::vector<std::string>& 
 
     // Loop Through Each Folder and File in Path, Calculate Checksum & Write to File
     std::cout << "\nCalculating checksums for files in " << path << "...\n";
+    std::filesystem::path basePath = std::filesystem::absolute(path);
 
     for (const auto& entry : std::filesystem::recursive_directory_iterator(path)) {
         if (entry.is_regular_file()) {
@@ -148,14 +149,16 @@ int createChecksumFile(const std::string& path, const std::vector<std::string>& 
             int checksum = calculateFileChecksum(filePath);
             if (checksum != -1) {
                 try {
-                    checksumFile << filePath.string() << " " << checksum << std::endl;
+                    // relative path
+                    std::filesystem::path relativePath = std::filesystem::relative(filePath, basePath);
+                    checksumFile << relativePath.string() << " " << checksum << std::endl;
+
                     if (checksumFile.fail()) {
                         std::cout << "\n\033[1;33mWarning: Failed to write checksum for: " << filePath.string() << "\033[0m" << std::endl;
                         errorCount++;
                     }
                     else {
                         fileCount++;
-                        // Show progress every 10 files
                         if (fileCount % 10 == 0) {
                             std::cout << "." << std::flush;
                         }
